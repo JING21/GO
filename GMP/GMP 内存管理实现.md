@@ -4,7 +4,7 @@
 
 ### 1. 单进程不需要调度器
 
-![image-20220124101427219](https://github.com/JING21/GO/raw/main/single-process.png)
+![image-20220124101427219](https://github.com/JING21/GO/raw/main/GMP/single-process.png)
 
 在早期的操作系统中，每个程序对应一个进程，而cpu执行计算任务的时候，都是单进程，一个进程执行完了
 
@@ -17,7 +17,7 @@
 
 ### 2.多进程/线程需要调度器
 
-![多进程](https://github.com/JING21/GO/raw/main/多进程.png)
+![多进程](https://github.com/JING21/GO/raw/main/GMP/多进程.png)
 
 在多进程 / 多线程的操作系统中，就解决了阻塞的问题，因为一个进程阻塞 cpu 可以立刻切换到其他进程中去执行，而且调度 cpu 的算法可以保证在运行的进程都可以被分配到 cpu 的运行时间片。这样从宏观来看，似乎多个进程是在同时被运行。
 但新的问题就又出现了，进程拥有太多的资源，进程的创建、切换、销毁，都会占用很长的时间，CPU 虽然利用起来了，但如果进程过多，CPU 有很大的一部分都被用来进行进程调度了。
@@ -30,7 +30,7 @@
 - 高内存占用
 - 调度的高消耗 CPU
 
-![image-20220325165240009](https://github.com/JING21/GO/raw/main/coroutine&thread.png)
+![image-20220325165240009](https://github.com/JING21/GO/raw/main/GMP/coroutine&thread.png)
 
 一个线程分为 “内核态 “线程和” 用户态 “线程。一个 “用户态线程” 必须要绑定一个 “内核态线程”，但是 CPU 并不知道有 “用户态线程” 的存在，它只知道它运行的是一个 “内核态线程”(Linux 的 PCB 进程控制块)。内核线程依然叫 “线程 (thread)”，用户线程叫 “协程 (co-routine)”。
 
@@ -43,7 +43,7 @@ N 个协程绑定 1 个线程，优点就是**协程在用户态线程即完成�
 - 某个程序用不了硬件的多核加速能力
 - 一旦某协程阻塞，造成线程阻塞，本进程的其他协程都无法执行了，根本就没有并发的能力了。
 
-![image-20220408094430548](https://github.com/JING21/GO/raw/main/N1model.png)
+![image-20220408094430548](https://github.com/JING21/GO/raw/main/GMP/N1model.png)
 
 1:1 关系
 1 个协程绑定 1 个线程，这种最容易实现。协程的调度都由 CPU 完成了，不存在 N:1 缺点，
@@ -51,14 +51,14 @@ N 个协程绑定 1 个线程，优点就是**协程在用户态线程即完成�
 
 - 协程的创建、删除和切换的代价都由 CPU 完成，有点略显昂贵了。
 
-![image-20220408094407894](https://github.com/JING21/GO/raw/main/11Model.png)
+![image-20220408094407894](https://github.com/JING21/GO/raw/main/GMP/11Model.png)
 
 M:N 关系
 M 个协程绑定 1 个线程，是 N:1 和 1:1 类型的结合。
 
  协程跟线程是有区别的，线程由 CPU 调度是抢占式的，**协程由用户态调度是协作式的**，一个协程让出 CPU 后，才执行下一个协程。
 
-![image-20220408094223883](https://github.com/JING21/GO/raw/main/MNmodel.png)
+![image-20220408094223883](https://github.com/JING21/GO/raw/main/GMP/MNmodel.png)
 
 ## 3.GO语言的协程goroutine
 
@@ -72,7 +72,7 @@ Goroutine 特点：
 
 ### 原先的GM模型
 
-![image-20220408110753527](https://github.com/JING21/GO/raw/main/GMmodel.png)
+![image-20220408110753527](https://github.com/JING21/GO/raw/main/GMP/GMmodel.png)
 
  G 来表示 Goroutine，用 M 来表示线程
 
@@ -85,7 +85,7 @@ M 想要执行、放回 G 都必须访问全局 G 队列，并且 M 有多个，
 
  ### GMP模型
 
-![image-20220408151755837](https://github.com/JING21/GO/raw/main/GMP.png)
+![image-20220408151755837](https://github.com/JING21/GO/raw/main/GMP/GMP.png)
 
 1. **全局队列**（Global Queue）：存放等待运行的 G。
 2. **P 的本地队列**：同全局队列类似，存放的也是等待运行的 G，存的数量有限，不超过 256 个。新建 G’时，G’优先加入到 P 的本地队列，如果队列满了，则会把本地队列中一半的 G 移动到全局队列。
@@ -120,7 +120,7 @@ P 和 M 何时会被创建
 
 
 
-![image-20220411111312426](https://github.com/JING21/GO/raw/main/gofunction.png)go func()启动一个goroutine，即生成一个G
+![image-20220411111312426](https://github.com/JING21/GO/raw/main/GMP/gofunction.png)go func()启动一个goroutine，即生成一个G
 
 1. go func()启动一个goroutine，即生成一个G
 2. G进入队列，如果P的局部队列满了，则进入全局队列
@@ -140,12 +140,12 @@ P 和 M 何时会被创建
 -  场景 1
   P 拥有 G1，M1 获取 P 后开始运行 G1，G1 使用 `go func()` 创建了 G2，为了局部性 G2 优先加入到 P1 的本地队列。
 
-  ![image-20220411154502820](https://github.com/JING21/GO/raw/main/ph1.png)
+  ![image-20220411154502820](https://github.com/JING21/GO/raw/main/GMP/ph1.png)
 
 - 场景 2
   G1 运行完成后 (函数：`goexit`)，M 上运行的 goroutine 切换为 G0，G0 负责调度时协程的切换（函数：`schedule`）。从 P 的本地队列取 G2，从 G0 切换到 G2，并开始运行 G2 (函数：`execute`)。实现了线程 M1 的复用。
 
-  ![image-20220411160452325](https://github.com/JING21/GO/raw/main/ph2.png)
+  ![image-20220411160452325](https://github.com/JING21/GO/raw/main/GMP/ph2.png)
 
 - 场景 3和4
   假设每个 P 的本地队列只能存 3 个 G。G2 要创建了 6 个 G，前 3 个 G（G3, G4, G5）已经加入 p1 的本地队列，p1 本地队列满了。
@@ -153,19 +153,19 @@ P 和 M 何时会被创建
   G2 在创建 G7 的时候，发现 P1 的本地队列已满，需要执行**负载均衡** (把 P1 中本地队列中前一半的 G，还有新创建 G **转移**到全局队列)
   （实现中并不一定是新的 G，如果 G 是 G2 之后就执行的，会被保存在本地队列，利用某个老的 G 替换新 G 加入全局队列
 
-  ![image-20220411173952310](https://github.com/JING21/GO/raw/main/ph34.png)
+  ![image-20220411173952310](https://github.com/JING21/GO/raw/main/GMP/ph34.png)
 
 - 场景5
 
   G2 创建 G7 时，P1 的本地队列未满，所以 G7 会被加入到 P1 的本地队列
 
-  ![image-20220412100050605](https://github.com/JING21/GO/raw/main/ph5.png)
+  ![image-20220412100050605](https://github.com/JING21/GO/raw/main/GMP/ph5.png)
 
 - 场景6		
 
   在创建 G 时，运行的 G 会尝试唤醒其他空闲的 P 和 M 组合去执行，假定 G2 唤醒了 M2，M2 绑定了 P2，并运行 G0，但 P2 本地队列没有 G，M2 此时为自旋线程**（没有 G 但为运行状态的线程，不断寻找 G）**。
 
-  ![image-20220412102716761](https://github.com/JING21/GO/raw/main/ph6.png)
+  ![image-20220412102716761](https://github.com/JING21/GO/raw/main/GMP/ph6.png)
 
 - 场景7
 
@@ -175,7 +175,7 @@ P 和 M 何时会被创建
 
   假定我们场景中一共有 4 个 P（GOMAXPROCS 设置为 4，那么我们允许最多就能用 4 个 P 来供 M 使用）。所以 M2 只从能从全局队列取 1 个 G（即 G3）移动 P2 本地队列，然后完成从 G0 到 G3 的切换，运行 G3。
 
-  ![p7](https://github.com/JING21/GO/raw/main/p7.png)
+  ![p7](https://github.com/JING21/GO/raw/main/GMP/p7.png)
 
 - 场景8
 
@@ -183,11 +183,11 @@ P 和 M 何时会被创建
 
     **全局队列已经没有 G，那 m 就要执行 work stealing (偷取)：从其他有 G 的 P 哪里偷取一半 G 过来，放到自己的 P 本地队列**。P2 从 P1 的本地队列尾部取一半的 G，本例中一半则只有 1 个 G7，放到 P2 的本地队列并执行。
 
-    ![image-20220412105923959](https://github.com/JING21/GO/raw/main/ph8.png)
+    ![image-20220412105923959](https://github.com/JING21/GO/raw/main/GMP/ph8.png)
 
 - 场景9
 
-  ![image-20220412142426339](https://github.com/JING21/GO/raw/main/ph9.png)
+  ![image-20220412142426339](https://github.com/JING21/GO/raw/main/GMP/ph9.png)
 
   当前 M1 和 M2 分别在运行 G2 和 G8，M3 和 M4 没有 goroutine 可以运行，M3 和 M4 处于**自旋状态**，它们不断寻找 goroutine
 
@@ -195,12 +195,12 @@ P 和 M 何时会被创建
 
 - 场景10
 
-  ![ph10](https://github.com/JING21/GO/raw/main/ph10.png)
+  ![ph10](https://github.com/JING21/GO/raw/main/GMP/ph10.png)
 
   假定当前除了 M3 和 M4 为自旋线程，还有 M5 和 M6 为休眠的线程 (没有得到 P 的绑定，最多就只能够存在 4 个 P，所以 P 的数量应该永远是 M>=P, 大部分都是 M 在抢占需要运行的 P)，G8 创建了 G9，G8 进行了**阻塞的系统调用**，M2 和 P2 立即解绑，P2 会执行以下判断：如果 P2 本地队列有 G、全局队列有 G 或有空闲的 M，P2 都会立马唤醒 1 个 M 和它绑定，否则 P2 则会加入到空闲 P 列表，等待 M 来获取可用的 p。本场景中，P2 本地队列有 G9，可以和其他空闲的线程 M5 绑定。
 
 - 场景11
 
-  ![image-20220413103910496](https://github.com/JING21/GO/raw/main/ph11.png)
+  ![image-20220413103910496](https://github.com/JING21/GO/raw/main/GMP/ph11.png)
 
 G8 创建了 G9，假如 G8 进行了**非阻塞系统调用**。 M2 和 P2 会解绑，但 M2 会记住 P2，然后 G8 和 M2 进入**系统调用**状态。当 G8 和 M2 退出系统调用时，会尝试获取 P2，如果无法获取，则获取空闲的 P，如果依然没有，G8 会被记为可运行状态，并加入到全局队列，M2 因为没有 P 的绑定而变成休眠状态 (长时间休眠等待 GC 回收销毁)。
