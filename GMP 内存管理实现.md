@@ -4,7 +4,7 @@
 
 ### 1. 单进程不需要调度器
 
-![image-20220124101427219](https://github.com/JING21/GO/raw/main/single- process.png)
+![image-20220124101427219](https://github.com/JING21/GO/raw/main/single-process.png)
 
 在早期的操作系统中，每个程序对应一个进程，而cpu执行计算任务的时候，都是单进程，一个进程执行完了
 
